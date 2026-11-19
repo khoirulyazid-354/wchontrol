@@ -1,0 +1,6 @@
+/* WHControl - gaya kustom (selain Tailwind) */
+:root { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.top-rainbow-bar { height: 4px; width: 100%; background: linear-gradient(90deg, #ff0066 0%, #ff7700 28%, #eab308 52%, #65a30d 76%, #0077b6 100%); }
+@keyframes floatSlow { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-10px) scale(1.02); } }
+.animate-float-slow { animation: floatSlow 8s ease-in-out infinite; }
+.animate-float-delayed { animation: floatSlow 10s ease-in-out 3s infinite; }

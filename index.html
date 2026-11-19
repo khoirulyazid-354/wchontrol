@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>WHControl - Warehouse Control System</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<script src="js/tailwind-config.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-[#F9FAFB] text-slate-900 min-h-screen flex flex-col relative overflow-x-hidden font-sans">
+
+<div class="top-rainbow-bar fixed top-0 left-0 right-0 z-50"></div>
+
+<div class="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+  <div class="absolute -top-6 -left-8 w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-pink-200/50 animate-float-slow"></div>
+  <div class="absolute top-20 left-[57%] w-4 h-4 rounded-full bg-sky-200/70"></div>
+  <div class="absolute top-36 right-[14%] w-14 h-14 rounded-full bg-amber-200/45 animate-float-delayed"></div>
+  <div class="absolute bottom-[32%] left-[10%] w-6 h-6 rounded-full bg-amber-200/55"></div>
+  <div class="absolute -bottom-10 -left-10 w-40 h-40 rounded-full bg-sky-200/50 animate-float-delayed"></div>
+  <div class="absolute bottom-24 left-[63%] w-4 h-4 rounded-full bg-pink-300/50"></div>
+  <div class="absolute bottom-36 right-[8%] w-20 h-20 rounded-full bg-lime-200/55 animate-float-slow"></div>
+</div>
+
+<div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+<!-- Shared SVG pattern defs + logo symbol -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <pattern id="yofc-dots-pink" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="2.2" fill="#ec1c65"/><circle cx="9" cy="4" r="1.6" fill="#f472b6"/><circle cx="5" cy="9" r="2" fill="#db2777"/><circle cx="10" cy="10" r="1.4" fill="#fb7185"/></pattern>
+    <pattern id="yofc-dots-orange" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="2.2" fill="#f59e0b"/><circle cx="9" cy="4" r="1.7" fill="#fbbf24"/><circle cx="5" cy="9" r="2.1" fill="#ea580c"/><circle cx="10" cy="10" r="1.5" fill="#fdba74"/></pattern>
+    <pattern id="yofc-dots-green" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="2.2" fill="#65a30d"/><circle cx="9" cy="4" r="1.6" fill="#84cc16"/><circle cx="5" cy="9" r="2" fill="#4d7c0f"/><circle cx="10" cy="10" r="1.5" fill="#a3e635"/></pattern>
+    <pattern id="yofc-dots-blue" x="0" y="0" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="2.2" fill="#0284c7"/><circle cx="9" cy="4" r="1.6" fill="#38bdf8"/><circle cx="5" cy="9" r="2" fill="#0369a1"/><circle cx="10" cy="10" r="1.5" fill="#7dd3fc"/></pattern>
+    <symbol id="yofc-logo" viewBox="0 0 210 72">
+      <path d="M12 10H25L35 28L45 10H58L41 39V56H29V39L12 10Z" fill="url(#yofc-dots-pink)"/>
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M84 9C98.9117 9 110 19.2975 110 33C110 46.7025 98.9117 57 84 57C69.0883 57 58 46.7025 58 33C58 19.2975 69.0883 9 84 9ZM84 20.5C76.5 20.5 70.5 25.8 70.5 33C70.5 40.2 76.5 45.5 84 45.5C91.5 45.5 97.5 40.2 97.5 33C97.5 25.8 91.5 20.5 84 20.5Z" fill="url(#yofc-dots-orange)"/>
+      <path d="M117 10H154V20.5H129.5V28.5H150V38.5H129.5V56H117V10Z" fill="url(#yofc-dots-green)"/>
+      <path d="M198 23.5C195.2 21 191.5 19.8 187.2 19.8C179.4 19.8 173.5 25.4 173.5 33C173.5 40.6 179.4 46.2 187.2 46.2C191.5 46.2 195.2 45 198 42.5L205.5 50.5C200.8 54.8 194.4 57 186.8 57C171.8 57 160.5 46.8 160.5 33C160.5 19.2 171.8 9 186.8 9C194.4 9 200.8 11.2 205.5 15.5L198 23.5Z" fill="url(#yofc-dots-blue)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- VIEW: MASTER SMDT -->
+<section id="view-smdt-home" class="hidden relative z-10 flex-1 flex flex-col min-h-screen w-full">
+  <header class="bg-white/95 backdrop-blur border-b border-slate-200 sticky top-0 z-20" style="padding-top:env(safe-area-inset-top,0px)">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <svg width="92" height="32" aria-label="YOFC Logo" class="shrink-0"><use href="#yofc-logo"/></svg>
+        <div class="h-8 w-px bg-slate-200 hidden sm:block"></div>
+        <div class="hidden sm:block min-w-0">
+          <h2 class="text-sm font-extrabold tracking-tight text-[#111827] leading-tight">MASTER SMDT</h2>
+          <p class="text-[11px] text-slate-500 font-medium">Management System</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <div class="flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full bg-[#e6f2f8] border border-[#006699]/15 min-w-0">
+          <span id="smdt-avatar" class="w-7 h-7 rounded-full bg-[#006699] text-white text-xs font-extrabold flex items-center justify-center shrink-0">A</span>
+          <span id="smdt-logged-user" class="text-xs font-bold text-[#006699] uppercase max-w-[90px] sm:max-w-[180px] truncate">ADMIN</span>
+        </div>
+        <button type="button" onclick="showUserProfileToast()" title="Profil Pengguna" class="hidden sm:flex items-center gap-2 h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-[13px] font-semibold transition-all cursor-pointer"><i data-lucide="circle-user" class="w-4 h-4 text-slate-500"></i><span>Profil</span></button>
+        <button type="button" onclick="handleLogout()" title="Logout" class="flex items-center gap-2 h-9 px-2.5 sm:px-3 rounded-xl border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 text-[13px] font-semibold transition-all cursor-pointer"><i data-lucide="log-out" class="w-4 h-4"></i><span class="hidden sm:inline">Logout</span></button>
+      </div>
+    </div>
+    <div class="top-rainbow-bar"></div>
+  </header>
+
+  <main class="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-8 py-6 sm:py-8 flex flex-col gap-6">
+    <div class="rounded-2xl bg-gradient-to-br from-[#006699] to-[#00527a] text-white p-5 sm:p-8 shadow-[0_14px_40px_-12px_rgba(0,102,153,0.45)] relative overflow-hidden">
+      <div class="absolute -right-10 -top-10 w-44 h-44 rounded-full bg-white/10"></div>
+      <div class="absolute right-24 -bottom-12 w-28 h-28 rounded-full bg-white/10"></div>
+      <p class="text-[11px] font-bold tracking-[0.14em] uppercase text-sky-100">Selamat datang</p>
+      <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight mt-1 break-words">Halo, <span id="smdt-welcome-name">ADMIN</span></h1>
+      <p class="text-sm sm:text-base text-sky-100 mt-2 max-w-xl">Pilih menu di bawah untuk mengelola delivery order, transfer order, BOQ, dan stok gudang subkontraktor.</p>
+    </div>
+
+    <div class="flex-1 flex flex-col">
+      <p class="text-[11px] font-bold tracking-[0.1em] text-slate-400 uppercase mb-3">Menu Pengguna</p>
+      <div id="smdt-menu-list" class="flex-1 grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-5 auto-rows-fr"></div>
+    </div>
+  </main>
+
+  <footer class="text-center text-[11px] text-slate-400 py-5 px-4">&copy; 2026 YOFC &middot; WHControl</footer>
+</section>
+
+<!-- VIEW: TOTAL DO -->
+<section id="view-do" class="hidden relative z-10 flex-1 flex flex-col min-h-screen w-full">
+  <header class="bg-white/95 backdrop-blur border-b border-slate-200 sticky top-0 z-20" style="padding-top:env(safe-area-inset-top,0px)">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0"><i data-lucide="truck" class="w-5 h-5"></i></div>
+        <div class="min-w-0"><h2 class="text-sm sm:text-base font-extrabold tracking-tight text-[#111827] leading-tight">Total DO</h2><p class="text-[11px] text-slate-500 font-medium"><span id="do-subtitle">Delivery Order</span></p></div>
+      </div>
+      <button type="button" onclick="backToSmdtHome()" class="flex items-center gap-2 h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-[13px] font-semibold transition-all cursor-pointer shrink-0"><i data-lucide="arrow-left" class="w-4 h-4"></i><span class="hidden sm:inline">Kembali ke MASTER SMDT</span><span class="sm:hidden">Kembali</span></button>
+    </div>
+    <div class="top-rainbow-bar"></div>
+  </header>
+  <main class="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-8 py-5 sm:py-8 flex flex-col gap-5">
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div class="bg-white rounded-2xl border border-slate-200 p-4"><p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Baris Data</p><p id="do-s-rows" class="text-2xl sm:text-3xl font-extrabold text-[#006699] mt-1">0</p></div>
+      <div class="bg-white rounded-2xl border border-slate-200 p-4"><p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Outbound No.</p><p id="do-s-out" class="text-2xl sm:text-3xl font-extrabold text-sky-600 mt-1">0</p></div>
+      <div class="bg-white rounded-2xl border border-slate-200 p-4"><p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Total Kabel</p><p id="do-s-cable" class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1">0</p></div>
+      <div class="bg-white rounded-2xl border border-slate-200 p-4"><p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Total Perangkat</p><p id="do-s-device" class="text-2xl sm:text-3xl font-extrabold text-pink-600 mt-1">0</p></div>
+      <div class="bg-white rounded-2xl border border-slate-200 p-4 col-span-2 lg:col-span-1"><p id="do-s-sub-l"class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Subcont</p><p id="do-s-sub" class="text-2xl sm:text-3xl font-extrabold text-lime-700 mt-1">0</p></div>
+    </div>
+    <p class="text-[11px] text-slate-400 -mt-3">Kabel = material CABLE-*. Perangkat = material lainnya (FAT, FDT, closure, tiang, dll).</p>
+
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5">
+      <div class="relative mb-3">
+        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+        <input id="do-q" type="search" oninput="doSet('q',this.value)" placeholder="Cari outbound no., subcont, kota, material..." class="w-full h-11 pl-10 pr-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#006699] focus:ring-2 focus:ring-[#006699]/10">
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <select id="do-sub" data-admin onchange="doSet('sub',this.value)" class="w-full h-10 px-3 text-sm bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#006699] focus:ring-2 focus:ring-[#006699]/10 cursor-pointer col-span-2 hidden"></select>
+        <select id="do-region" data-admin onchange="doSet('region',this.value)" class="w-full h-10 px-3 text-sm bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#006699] focus:ring-2 focus:ring-[#006699]/10 cursor-pointer hidden"></select>
+        <select id="do-mat" onchange="doSet('mat',this.value)" class="w-full h-10 px-3 text-sm bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#006699] focus:ring-2 focus:ring-[#006699]/10 cursor-pointer"></select>
+        <select id="do-year" onchange="doSet('year',this.value)" class="w-full h-10 px-3 text-sm bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#006699] focus:ring-2 focus:ring-[#006699]/10 cursor-pointer"></select>
+        <select id="do-sort" onchange="doSet('sort',this.value)" class="w-full h-10 px-3 text-sm bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#006699] focus:ring-2 focus:ring-[#006699]/10 cursor-pointer">
+          <option value="date-desc">Terbaru</option><option value="date-asc">Terlama</option><option value="qty-desc">Qty terbesar</option><option value="qty-asc">Qty terkecil</option><option value="sub">Subcont A-Z</option>
+        </select>
+        <button type="button" onclick="doReset()" class="h-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Reset</span></button>
+      </div>
+    </div>
+
+    <p id="do-info" class="text-xs text-slate-500 -mb-2"></p>
+
+    <div id="do-recap" class="hidden bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div class="px-4 sm:px-5 py-3.5 border-b border-slate-100 flex items-center justify-between gap-3">
+        <div><h3 class="text-sm font-extrabold text-slate-900">Rekap per Subcont</h3><p class="text-[11px] text-slate-500">Klik baris untuk memfilter data subcont tersebut</p></div>
+        <button type="button" onclick="doPick('')" class="text-xs font-bold text-[#006699] hover:underline cursor-pointer shrink-0">Semua subcont</button>
+      </div>
+      <div class="overflow-x-auto"><table class="w-full text-left text-sm">
+        <thead><tr class="bg-slate-50 text-slate-600 text-[11px] uppercase tracking-wider border-b border-slate-200"><th class="py-2.5 px-4 font-bold">Subcont</th><th class="py-2.5 px-4 font-bold text-right">Outbound</th><th class="py-2.5 px-4 font-bold text-right">Baris</th><th class="py-2.5 px-4 font-bold text-right">Kabel</th><th class="py-2.5 px-4 font-bold text-right">Perangkat</th></tr></thead>
+        <tbody id="do-recap-body" class="divide-y divide-slate-100"></tbody>
+      </table></div>
+    </div>
+
+    <div class="hidden md:block bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead id="do-thead"></thead>
+        <tbody id="do-tbody" class="divide-y divide-slate-100"></tbody>
+      </table>
+    </div>
+    <div id="do-cards" class="md:hidden space-y-2.5"></div>
+
+    <div class="flex items-center justify-between gap-3">
+      <button type="button" id="do-prev" onclick="doPage(-1)" class="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-700 flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"><i data-lucide="chevron-left" class="w-4 h-4"></i>Sebelumnya</button>
+      <span id="do-page" class="text-xs sm:text-sm font-semibold text-slate-600"></span>
+      <button type="button" id="do-next" onclick="doPage(1)" class="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-700 flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">Berikutnya<i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+    </div>
+  </main>
+  <footer class="text-center text-[11px] text-slate-400 py-5 px-4">&copy; 2026 YOFC &middot; WHControl</footer>
+</section>
+
+<!-- VIEW: TOTAL TO -->
+<section id="view-to" class="hidden relative z-10 flex-1 flex flex-col min-h-screen w-full">
+  <header class="bg-white/95 backdrop-blur border-b border-slate-200 sticky top-0 z-20" style="padding-top:env(safe-area-inset-top,0px)">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0"><i data-lucide="refresh-cw" class="w-5 h-5"></i></div>
+        <div class="min-w-0"><h2 class="text-sm sm:text-base font-extrabold tracking-tight text-[#111827] leading-tight">Total TO</h2><p class="text-[11px] text-slate-500 font-medium">Transfer Order</p></div>
+      </div>
+      <button type="button" onclick="backToSmdtHome()" class="flex items-center gap-2 h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-[13px] font-semibold transition-all cursor-pointer shrink-0"><i data-lucide="arrow-left" class="w-4 h-4"></i><span class="hidden sm:inline">Kembali ke MASTER SMDT</span><span class="sm:hidden">Kembali</span></button>
+    </div>
+    <div class="top-rainbow-bar"></div>
+  </header>
+  <main class="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-8 py-8">
+    <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center">
+      <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto"><i data-lucide="refresh-cw" class="w-6 h-6"></i></div>
+      <h3 class="mt-4 text-base font-extrabold text-slate-900">Data Total TO belum tersedia</h3>
+      <p class="mt-1 text-sm text-slate-500">Tambahkan data di <code class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 text-xs">data/to-data.js</code> lalu halaman ini akan menampilkannya.</p>
+      <p id="to-count" class="mt-3 text-xs font-semibold text-slate-400">0 baris data</p>
+    </div>
+  </main>
+</section>
+
+<!-- VIEW: TOTAL BOQ -->
+<section id="view-boq" class="hidden relative z-10 flex-1 flex flex-col min-h-screen w-full">
+  <header class="bg-white/95 backdrop-blur border-b border-slate-200 sticky top-0 z-20" style="padding-top:env(safe-area-inset-top,0px)">
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-8 h-16 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-xl bg-lime-50 text-lime-700 flex items-center justify-center shrink-0"><i data-lucide="clipboard-list" class="w-5 h-5"></i></div>
+        <div class="min-w-0"><h2 class="text-sm sm:text-base font-extrabold tracking-tight text-[#111827] leading-tight">Total BOQ</h2><p class="text-[11px] text-slate-500 font-medium truncate"><span id="boq-subtitle">Bill of Quantity</span></p></div>
+      </div>
+      <button type="button" onclick="backToSmdtHome()" class="flex items-center gap-2 h-9 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-[13px] font-semibold transition-all cursor-pointer shrink-0"><i data-lucide="arrow-left" class="w-4 h-4"></i><span class="hidden sm:inline">Kembali ke MASTER SMDT</span><span class="sm:hidden">Kembali</span></button>
+    </div>
+    <div class="top-rainbow-bar"></div>
+  </header>
+  <main class="flex-1 w-full max-w-[1400px] mx-auto px-4 sm:px-8 py-5 sm:py-8 flex flex-col gap-5">
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div class="bg-white rounded-2xl border border-slate-200 p-4"><p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Baris Data</p><p id="boq-s-rows" class="text-2xl sm:text-3xl font-extrabold text-[#006699] mt-1">0</p></div>
+      <div class="bg-white rounded-2xl border border-slate-200 p-4"><p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Site</p><p id="boq-s-site" class="text-2xl sm:text-3xl font-extrabold text-sky-600 mt-1">0</p></div>
+      <div class="bg-white rounded-2xl border border-slate-200 p-4"><p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Total Kabel</p><p id="boq-s-cable" class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1">0</p></div>
+      <div class="bg-white rounded-2xl border border-slate-200 p-4"><p class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Total Perangkat</p><p id="boq-s-device" class="text-2xl sm:text-3xl font-extrabold text-pink-600 mt-1">0</p></div>
+      <div class="bg-white rounded-2xl border border-slate-200 p-4 col-span-2 lg:col-span-1"><p id="boq-s-sub-l"class="text-[11px] font-bold tracking-wider text-slate-400 uppercase">Subcont</p><p id="boq-s-sub" class="text-2xl sm:text-3xl font-extrabold text-lime-700 mt-1">0</p></div>
+    </div>
+    <p class="text-[11px] text-slate-400 -mt-3">Kabel = material CABLE-*. Perangkat = material lainnya (FAT, FDT, closure, tiang, dll).</p>
+
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5">
+      <div class="relative mb-3">
+        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+        <input id="boq-q" type="search" oninput="boqSet('q',this.value)" placeholder="Cari site, PO number, material, status..." class="w-full h-11 pl-10 pr-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-[#006699] focus:ring-2 focus:ring-[#006699]/10">
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <select id="boq-sub" data-admin onchange="boqSet('sub',this.value)" class="w-full h-10 px-3 text-sm bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#006699] focus:ring-2 focus:ring-[#006699]/10 cursor-pointer col-span-2 hidden"></select>
+        <select id="boq-region" data-admin onchange="boqSet('region',this.value)" class="w-full h-10 px-3 text-sm bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#006699] focus:ring-2 focus:ring-[#006699]/10 cursor-pointer hidden"></select>
+        <select id="boq-status" onchange="boqSet('status',this.value)" class="w-full h-10 px-3 text-sm bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#006699] focus:ring-2 focus:ring-[#006699]/10 cursor-pointer"></select>
+        <select id="boq-site" onchange="boqSet('site',this.value)" class="w-full h-10 px-3 text-sm bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#006699] focus:ring-2 focus:ring-[#006699]/10 cursor-pointer"></select>
+        <select id="boq-mat" onchange="boqSet('mat',this.value)" class="w-full h-10 px-3 text-sm bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#006699] focus:ring-2 focus:ring-[#006699]/10 cursor-pointer"></select>
+        <select id="boq-sort" onchange="boqSet('sort',this.value)" class="w-full h-10 px-3 text-sm bg-white border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-[#006699] focus:ring-2 focus:ring-[#006699]/10 cursor-pointer">
+          <option value="site">Site A-Z</option><option value="sub">Subcont A-Z</option><option value="qty-desc">Qty terbesar</option><option value="qty-asc">Qty terkecil</option>
+        </select>
+        <button type="button" onclick="boqReset()" class="h-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer"><i data-lucide="rotate-ccw" class="w-4 h-4"></i><span>Reset</span></button>
+      </div>
+    </div>
+
+    <p id="boq-info" class="text-xs text-slate-500 -mb-2"></p>
+
+    <div id="boq-recap" class="hidden bg-white rounded-2xl border border-slate-200 overflow-hidden">
+      <div class="px-4 sm:px-5 py-3.5 border-b border-slate-100 flex items-center justify-between gap-3">
+        <div><h3 class="text-sm font-extrabold text-slate-900">Rekap per Subcont</h3><p class="text-[11px] text-slate-500">Klik baris untuk memfilter data subcont tersebut</p></div>
+        <button type="button" onclick="boqPick('')" class="text-xs font-bold text-[#006699] hover:underline cursor-pointer shrink-0">Semua subcont</button>
+      </div>
+      <div class="overflow-x-auto"><table class="w-full text-left text-sm">
+        <thead><tr class="bg-slate-50 text-slate-600 text-[11px] uppercase tracking-wider border-b border-slate-200"><th class="py-2.5 px-4 font-bold">Subcont</th><th class="py-2.5 px-4 font-bold text-right">Site</th><th class="py-2.5 px-4 font-bold text-right">Baris</th><th class="py-2.5 px-4 font-bold text-right">Kabel</th><th class="py-2.5 px-4 font-bold text-right">Perangkat</th></tr></thead>
+        <tbody id="boq-recap-body" class="divide-y divide-slate-100"></tbody>
+      </table></div>
+    </div>
+
+    <div class="hidden md:block bg-white rounded-2xl border border-slate-200 overflow-x-auto">
+      <table class="w-full text-left text-sm">
+        <thead id="boq-thead"></thead>
+        <tbody id="boq-tbody" class="divide-y divide-slate-100"></tbody>
+      </table>
+    </div>
+    <div id="boq-cards" class="md:hidden space-y-2.5"></div>
+
+    <div class="flex items-center justify-between gap-3">
+      <button type="button" id="boq-prev" onclick="boqPage(-1)" class="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-700 flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"><i data-lucide="chevron-left" class="w-4 h-4"></i>Sebelumnya</button>
+      <span id="boq-page" class="text-xs sm:text-sm font-semibold text-slate-600"></span>
+      <button type="button" id="boq-next" onclick="boqPage(1)" class="h-10 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-sm font-semibold text-slate-700 flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">Berikutnya<i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+    </div>
+  </main>
+  <footer class="text-center text-[11px] text-slate-400 py-5 px-4">&copy; 2026 YOFC &middot; WHControl</footer>
+</section>
+
+<!-- VIEW: REPORT FORM -->
+<section id="view-report" class="hidden relative z-10 min-h-screen flex flex-col justify-between p-4 sm:p-6 bg-slate-900 text-white">
+  <div>
+    <button onclick="backToSmdtHome()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 active:scale-[0.99] text-white font-semibold text-sm rounded-xl border border-slate-700 transition-all cursor-pointer"><i data-lucide="arrow-left" class="w-4 h-4"></i><span>Kembali ke MASTER SMDT</span></button>
+  </div>
+  <div class="text-center py-12">
+    <h2 class="text-xl font-bold">Halaman Formulir Laporan WHControl</h2>
+    <p class="text-slate-400 text-sm mt-2">Silakan isi laporan atau kembali ke menu sebelumnya.</p>
+  </div>
+  <div></div>
+</section>
+
+<!-- VIEW: LANDING -->
+<main id="view-landing" class="hidden relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-12 min-h-screen">
+  <div class="flex flex-col items-center mb-5 select-none">
+    <svg width="168" height="58" aria-label="YOFC Logo"><use href="#yofc-logo"/></svg>
+    <p class="text-[11.5px] font-bold tracking-tight text-slate-900 -mt-1">Smart Link Better Life.</p>
+  </div>
+  <div class="text-center max-w-md mx-auto mb-8">
+    <h1 class="text-4xl sm:text-[42px] font-extrabold text-[#111827] tracking-tight leading-tight">WHControl</h1>
+    <p class="text-xs sm:text-[13px] font-bold tracking-[0.14em] text-[#006699] uppercase mt-1.5">WAREHOUSE CONTROL</p>
+    <p class="text-sm sm:text-[15px] text-slate-500 leading-relaxed mt-4 px-2">Pelaporan stok material gudang subkontraktor YOFC, lengkap dengan foto bukti dan formulir Material Stock otomatis.</p>
+  </div>
+  <div id="landing-card-logged-out" class="w-full max-w-[390px] bg-white rounded-2xl shadow-[0_12px_36px_-8px_rgba(15,23,42,0.08)] border border-slate-100 p-6 sm:p-7">
+    <button onclick="openLoginPage()" class="w-full py-3.5 px-5 bg-[#006699] hover:bg-[#00527a] active:scale-[0.99] text-white font-semibold text-[15px] rounded-xl transition-all flex items-center justify-center gap-2.5 cursor-pointer"><i data-lucide="log-in" class="w-4 h-4"></i><span>Login</span></button>
+    <p class="text-center text-xs text-slate-500 mt-3.5">Gunakan Subcont Name dan password yang diberikan YOFC.</p>
+  </div>
+</main>
+
+<!-- VIEW: LOGIN -->
+<section id="view-login" class="hidden relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-12 min-h-screen">
+  <div class="flex flex-col items-center mb-5 select-none">
+    <svg width="150" height="52" aria-label="YOFC Logo"><use href="#yofc-logo"/></svg>
+    <p class="text-[11px] font-bold tracking-tight text-slate-900 -mt-1">Smart Link Better Life.</p>
+  </div>
+  <div class="text-center max-w-sm mx-auto mb-7">
+    <h2 class="text-3xl sm:text-[34px] font-extrabold text-[#111827] tracking-tight">Masuk</h2>
+    <p class="text-sm text-slate-500 leading-relaxed mt-2">Ketik Subcont Name dan password persis seperti yang diberikan YOFC.</p>
+  </div>
+  <div class="w-full max-w-[400px] bg-white rounded-2xl shadow-[0_14px_40px_-8px_rgba(15,23,42,0.09)] border border-slate-100 overflow-hidden">
+    <div class="top-rainbow-bar"></div>
+    <form onsubmit="handleLoginSubmit(event)" class="p-6 sm:p-7 space-y-4">
+      <div>
+        <label for="login-subcont-input" class="block text-xs font-bold text-slate-800 mb-1.5">Subcont Name <span class="text-rose-500">*</span></label>
+        <input type="text" id="login-subcont-input" placeholder="Contoh: PT Nama Perusahaan" required class="w-full px-3.5 py-3 text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#006699] focus:ring-2 focus:ring-[#006699]/10 transition-all">
+      </div>
+      <div>
+        <label for="login-password-input" class="block text-xs font-bold text-slate-800 mb-1.5">Password <span class="text-rose-500">*</span></label>
+        <div class="relative">
+          <input type="password" id="login-password-input" required class="w-full pl-3.5 pr-24 py-3 text-sm bg-white border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:border-[#006699] focus:ring-2 focus:ring-[#006699]/10 transition-all">
+          <button type="button" id="toggle-password-btn" onclick="togglePasswordVisibility()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#006699] hover:text-[#00527a] cursor-pointer">Tampilkan</button>
+        </div>
+        <p class="text-[11px] text-slate-500 mt-1.5">Password membedakan huruf besar dan kecil.</p>
+      </div>
+      <div class="pt-1">
+        <button type="submit" class="w-full py-3.5 px-5 bg-[#006699] hover:bg-[#00527a] active:scale-[0.99] text-white font-semibold text-[15px] rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"><i data-lucide="log-in" class="w-4 h-4"></i><span>Masuk</span></button>
+      </div>
+      <div class="text-center pt-1"><button type="button" onclick="fillDemoCredentials()" class="text-[11px] text-slate-400 hover:text-[#006699] transition-colors cursor-pointer">Isi cepat akun demo (ADMIN)</button></div>
+    </form>
+  </div>
+  <button onclick="backToLandingFromLogin()" class="mt-6 inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"><i data-lucide="chevron-left" class="w-4 h-4"></i><span>Kembali ke Beranda</span></button>
+</section>
+
+<script src="data/to-data.js"></script>
+<script src="js/core/ui.js"></script>
+<script src="js/core/csv.js"></script>
+<script src="js/core/util.js"></script>
+<script src="js/core/auth.js"></script>
+<script src="js/core/nav.js"></script>
+<script src="js/pages/do.js"></script>
+<script src="js/pages/to.js"></script>
+<script src="js/pages/boq.js"></script>
+</body>
+</html>
