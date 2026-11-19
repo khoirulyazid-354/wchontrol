@@ -3,6 +3,7 @@ const DO_PER_PAGE = 20;
 const doIsAdmin = () => !appState.user || appState.user.subconName === 'ADMIN';
 const doScope = () => doIsAdmin() ? DO_ROWS : DO_ROWS.filter(r => r.sub === appState.user.subconName);
 const doState = { q: '', sub: '', region: '', mat: '', year: '', sort: 'date-desc', page: 1 };
+const nf = n => n.toLocaleString('id-ID');
 
 /* Memuat data/do.csv (judul kolom sama dengan file Excel asli) */
 let DO_ROWS = [], doStatus = 'loading', doError = '', doSkipped = 0;
@@ -22,9 +23,9 @@ async function loadDO() {
         wh: r['outbound origin warehouse'] || '', verified: r['verified'] || '', recon: r['recon date'] || '', subQty: sq, link: /^https?:\/\//i.test(r['link doc'] || '') ? r['link doc'].replace(/"/g, '%22') : '' };
     }).filter(Boolean);
     doStatus = 'ready';
-    sourceDone(DO_ROWS.map(r => r.sub));
+    registerSubconts(DO_ROWS.map(r => r.sub));
   } catch (e) {
-    doStatus = 'error'; sourceDone([]);
+    doStatus = 'error'; dataStatus = 'error';
     doError = e.message + (location.protocol === 'file:' ? ' Buka lewat alamat web (GitHub Pages), bukan langsung dari file.' : '');
   }
   initDO();
@@ -32,7 +33,7 @@ async function loadDO() {
 
 function renderDOStatus() {
   const msg = doStatus === 'loading' ? 'Memuat data DO...' : doError;
-  ['do-s-rows', 'do-s-out', 'do-s-cable', 'do-s-device', 'do-s-sub'].forEach(id => document.getElementById(id).textContent = '0');
+  ['do-s-rows', 'do-s-out', 'do-s-qty', 'do-s-sub'].forEach(id => document.getElementById(id).textContent = '0');
   document.getElementById('do-recap').classList.add('hidden');
   document.getElementById('do-info').textContent = '';
   document.getElementById('do-page').textContent = '';
@@ -80,23 +81,20 @@ function renderDO() {
 
   document.getElementById('do-s-rows').textContent = nf(r.length);
   document.getElementById('do-s-out').textContent = nf(new Set(r.map(x => x.no)).size);
-  const tot = sumQty(r);
-  document.getElementById('do-s-cable').textContent = nf(tot.cable);
-  document.getElementById('do-s-device').textContent = nf(tot.device);
+  document.getElementById('do-s-qty').textContent = nf(r.reduce((t, x) => t + x.qty, 0));
   document.getElementById('do-s-sub').textContent = nf(new Set(r.map(x => adm ? x.sub : x.mat)).size);
 
   const recap = document.getElementById('do-recap');
   recap.classList.toggle('hidden', !adm);
   if (adm) {
     const g = {};
-    r.forEach(x => { const o = g[x.sub] || (g[x.sub] = { out: new Set(), rows: 0, cable: 0, device: 0 }); o.out.add(x.no); o.rows++; if (isCable(x.mat)) o.cable += x.qty; else o.device += x.qty; });
-    const list = Object.entries(g).sort((a, b) => b[1].cable - a[1].cable || b[1].device - a[1].device);
-    const c = 'py-2.5 px-4 text-right ';
+    r.forEach(x => { const o = g[x.sub] || (g[x.sub] = { out: new Set(), rows: 0, qty: 0 }); o.out.add(x.no); o.rows++; o.qty += x.qty; });
+    const list = Object.entries(g).sort((a, b) => b[1].qty - a[1].qty), max = Math.max(1, ...list.map(e => e[1].qty));
     document.getElementById('do-recap-body').innerHTML = list.length ? list.map(([n, o]) =>
       '<tr class="hover:bg-[#e6f2f8]/50 cursor-pointer ' + (f.sub === n ? 'bg-[#e6f2f8]' : '') + '" data-sub="' + n + '" onclick="doPick(this.dataset.sub)">' +
-      '<td class="py-2.5 px-4 font-semibold text-slate-900">' + n + '</td><td class="' + c + 'text-slate-700">' + o.out.size + '</td><td class="' + c + 'text-slate-700">' + o.rows + '</td>' +
-      '<td class="' + c + 'font-bold text-slate-900">' + nf(o.cable) + '</td><td class="' + c + 'font-bold text-slate-900">' + nf(o.device) + '</td></tr>').join('')
-      : '<tr><td colspan="5" class="py-6 text-center text-sm text-slate-500">Tidak ada data.</td></tr>';
+      '<td class="py-2.5 px-4 font-semibold text-slate-900">' + n + '</td><td class="py-2.5 px-4 text-right text-slate-700">' + o.out.size + '</td><td class="py-2.5 px-4 text-right text-slate-700">' + o.rows + '</td>' +
+      '<td class="py-2.5 px-4"><div class="flex items-center gap-2"><div class="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden"><div class="h-full rounded-full bg-[#006699]" style="width:' + Math.round(o.qty / max * 100) + '%"></div></div><span class="text-xs font-bold text-slate-800 w-16 text-right">' + nf(o.qty) + '</span></div></td></tr>').join('')
+      : '<tr><td colspan="4" class="py-6 text-center text-sm text-slate-500">Tidak ada data.</td></tr>';
   }
 
   const pages = Math.max(1, Math.ceil(r.length / DO_PER_PAGE));

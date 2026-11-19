@@ -4,12 +4,9 @@ let appState = { isLoggedIn: false, user: { subconName: 'ADMIN', picName: 'Admin
 /* Daftar subcont diisi otomatis dari kolom Subcont di file CSV */
 const SUBCONTS = [];
 let dataStatus = 'loading';
-const DATA_SOURCES = 2; /* jumlah file data yang memuat daftar subcont: DO dan BOQ */
-let sourcesDone = 0;
-function sourceDone(names) {
-  (names || []).forEach(n => { if (n && !SUBCONTS.includes(n)) SUBCONTS.push(n); });
-  if (++sourcesDone < DATA_SOURCES) return;
-  dataStatus = SUBCONTS.length ? 'ready' : 'error';
+function registerSubconts(names) {
+  names.forEach(n => { if (n && !SUBCONTS.includes(n)) SUBCONTS.push(n); });
+  dataStatus = 'ready';
   if (appState.isLoggedIn && !canonSubcont(appState.user.subconName)) {
     appState.isLoggedIn = false;
     try { localStorage.removeItem('whcontrol_auth'); } catch (e) {}
